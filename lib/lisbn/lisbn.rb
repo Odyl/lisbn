@@ -72,8 +72,18 @@ class Lisbn < String
     prefix = sprintf("%0#{prefix[:length]}d", prefix[:number])
     [group[0..2], group[3..-1], prefix, isbn13[(group.length + prefix.length)..-2], isbn13[-1..-1]]
   end
+  
+  def valid_isbn_10?
+    return false unless isbn.match(/^[0-9]{9}[0-9X]$/)
+    isbn[-1..-1] == isbn_10_checksum
+  end
 
-  cache_method :isbn, :valid?, :isbn10, :isbn13, :parts
+  def valid_isbn_13?
+    return false unless isbn.match(/^[0-9]{13}$/)
+    isbn[-1..-1] == isbn_13_checksum
+  end
+
+  cache_method :isbn, :valid?, :isbn10, :isbn13, :parts, :valid_isbn_10?, :valid_isbn_13?
 
 private
 
@@ -104,16 +114,6 @@ private
 
     remainder = products.inject(0) {|m, v| m + v} % 10
     (remainder == 0 ? 0 : 10 - remainder).to_s
-  end
-
-  def valid_isbn_10?
-    return false unless isbn.match(/^[0-9]{9}[0-9X]$/)
-    isbn[-1..-1] == isbn_10_checksum
-  end
-
-  def valid_isbn_13?
-    return false unless isbn.match(/^[0-9]{13}$/)
-    isbn[-1..-1] == isbn_13_checksum
   end
 
   def self.ranges
